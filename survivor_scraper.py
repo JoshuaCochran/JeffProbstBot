@@ -189,32 +189,32 @@ def process_all_season_data(season_dict):
             print(season_dict[season])
             link = convert_season_to_url(season_dict, season+1)
             df = extract_voting_table_as_df(link)
-            df.to_csv(season_dict[season]+'.csv')
+            df.to_csv("data/" + season_dict[season]+'.csv')
         else:
             print("Skipped " + season_dict[season])
             
 def read_in_season_data(season_dict, season_num):
-    df = pd.read_csv(season_dict[season_num-1] + ".csv")
+    df = pd.read_csv("data/" + season_dict[season_num-1] + ".csv")
     df.index = [df.index, df['Episode']]
     df = df.drop(df.columns[[0]], axis=1)
     df = round_episodes(df)
     return df
 
 def save_seasons(seasons_dict):
-    with open('seasons_dictionary.pkl', 'wb') as f:
+    with open('data/seasons_dictionary.pkl', 'wb') as f:
         pickle.dump(seasons_dict, f)
         
 def load_seasons():
-    with open('seasons_dictionary.pkl', 'rb') as f:
+    with open('data/seasons_dictionary.pkl', 'rb') as f:
         seasons_dict = pickle.load(f)
     return seasons_dict
 
 def save_cast(season_dict, season_num, season_cast_dict):
-    with open(season_dict[season_num-1] + '_cast.pkl', 'wb') as f:
+    with open("data/" + season_dict[season_num-1] + '_cast.pkl', 'wb') as f:
         pickle.dump(season_cast_dict, f)
         
 def load_season_cast(season_dict, season_num):
-    with open(season_dict[season_num-1] + '_cast.pkl', 'rb') as f:
+    with open("data/" + season_dict[season_num-1] + '_cast.pkl', 'rb') as f:
         seasons_cast_dict = pickle.load(f)
     return seasons_cast_dict
 
@@ -230,20 +230,3 @@ def fetch_all_contestant_data(first_season, last_season):
             season_cast_dict = fetch_all_contestant_info(season_cast)
                 
             save_cast(season_dict, season_num, season_cast_dict)
-
-#season_dict = fetch_seasons()
-#save_seasons(season_dict)
-#process_all_season_data(season_dict)
-
-fetch_all_contestant_data(39, 41)
-
-
-#print(season_13_df['Season Name'])
-#print(get_cast_voted_out_so_far(season_13_df,5))
-#print(get_cast_in_episode(season_13_df, 6))
-
-#link = convert_season_to_url(season_dict, 13)
-
-#df = extract_voting_table_as_df(link)
-#episode_num = 12
-#print(get_cast_in_episode(df, episode_num))

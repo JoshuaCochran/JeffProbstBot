@@ -13,7 +13,7 @@ import pandas
 import os
 import survivor_scraper 
 
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 token = os.getenv("DISCORD_TOKEN")
 bot.reportingChannel = 888867719032737835
 
