@@ -230,38 +230,3 @@ def fetch_all_contestant_data(first_season, last_season):
             season_cast_dict = fetch_all_contestant_info(season_cast)
                 
             save_cast(season_dict, season_num, season_cast_dict)
-
-def get_emojis():
-    response = requests.get('https://unicode.org/Public/emoji/13.0/emoji-sequences.txt')
-
-    emojis = []
-    for line in response.content.decode('utf8').split('\n'):
-        if line.strip() and not line.startswith('#'):
-            line = line.replace(' ', '')
-            hexas = line.split(';')[0]
-            hexas = hexas.split('..')
-            for hexa in hexas:
-                try:
-                    hexa = chr(int(hexa, 16))
-                except:
-                    pass
-                emojis.append(hexa)
-    return(emojis)
-
-def save_state(state):
-    with open('data/state.pkl', 'wb') as f:
-        pickle.dump(state, f)
-    
-def load_state():
-    try:
-        with open('data/state.pkl', 'rb') as f:
-            state = pickle.load(f)
-    except:
-        state = {
-            "current_episode": 1,
-            "current_season": 1,
-            "season_1_id": None,
-            "season_2_id": None,
-            "episode_id": None
-            }
-    return state

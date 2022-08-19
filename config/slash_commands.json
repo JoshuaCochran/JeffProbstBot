@@ -1,0 +1,37 @@
+[
+	{
+		"name": "currentseasoncast",
+		"type": 1,
+		"description": "Prints the cast of the current season."
+	},
+	{
+		"name": "episodepoll",
+		"type": 1,
+		"description": "Creates a poll to control the active episode."
+	},
+	{
+		"name": "reloadcommands",
+		"type": 1,
+		"description": "Reloads the server commands."
+	},
+	{
+		"name": "seasonpoll",
+		"type": 1,
+		"description": "Creates a poll to control the active season."
+	},
+	{
+		"name": "createseasontracker",
+		"type": 1,
+		"description": "Creates the season tracker message."
+	},
+	{
+		"name": "createepisodetracker",
+		"type": 1,
+		"description": "Creates the episode tracker message."
+	},
+	{
+		"name": "test",
+		"type": 1,
+		"description": "Creates the season tracker message."
+	}
+]

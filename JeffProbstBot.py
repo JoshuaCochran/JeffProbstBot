@@ -9,13 +9,18 @@ import discord
 from discord.ext import commands
 import pandas
 import os
-import survivor_scraper 
+import survivor_scraper
+import utils
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 token = os.getenv("DISCORD_TOKEN")
-bot.reportingChannel = 888867719032737835
 
-state = survivor_scraper.load_state()
+config = utils.load_config()
+bot.reportingChannel = config["reporting_channel"]
+guild_id = config["guild_id"]
+guild = discord.Object(id=guild_id, type=discord.abc.Snowflake)
+
+state = utils.load_state()
 
 @bot.command(name='setEpisode', help='Sets the current episode')
 async def set_episode(ctx, episode_num):
@@ -26,7 +31,7 @@ async def set_episode(ctx, episode_num):
     else:
         global state
         state["current_episode"] = episode_num
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
         
 @bot.command(name='setSeason', help='Sets the current season')
 async def set_season(ctx, season_num):
@@ -37,7 +42,7 @@ async def set_season(ctx, season_num):
     else:
         global state
         state["current_season"] = season_num
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
         
 @bot.command(name='getCurrentSeason', help='returns the current season')
 async def get_season(ctx):
@@ -49,11 +54,11 @@ async def get_episode(ctx):
     channel = bot.get_channel(bot.reportingChannel)
     await channel.send("The current episode is " + str(state["current_episode"]))
     
-@bot.command(name="SeasonPoll", help='Creates a poll to control the active season')
+@bot.hybrid_command(name="seasonpoll", help='Creates a poll to control the active season', guild=discord.Object(id=guild_id))
 async def create_season_poll(ctx):
     global state
     
-    emojis = survivor_scraper.get_emojis()
+    emojis = utils.get_emojis()
     seasons = survivor_scraper.load_seasons()
     title = "Season Selection (1-20)"
     description = "React with a reaction corresponding to the season you want to select!"
@@ -92,12 +97,12 @@ async def create_season_poll(ctx):
         
     state["season_2_id"] = msg.id
         
-    survivor_scraper.save_state(state)
+    utils.save_state(state)
         
-@bot.command(name="EpisodePoll", help='Creates a poll to control the active episode')
+@bot.hybrid_command(name="episodepoll", help='Creates a poll to control the active episode', guild=discord.Object(id=guild_id))
 async def create_episode_poll(ctx):
     global state
-    emojis = survivor_scraper.get_emojis()
+    emojis = utils.get_emojis()
     title = "Episode Selection (1-16)"
     description = "React with a reaction corresponding to the episode you want to select!"
     embed=discord.Embed(title=title, description=description)
@@ -116,12 +121,59 @@ async def create_episode_poll(ctx):
         await old_msg.delete()
         
     state["episode_id"] = msg.id
-    survivor_scraper.save_state(state)
+    utils.save_state(state)
     
-@bot.command(name="CurrentSeasonCast", help='Prints the cast of the current season')
+@bot.hybrid_command(name="createepisodetracker", help='Creates the episode tracker message', guild=discord.Object(id=guild_id))
+async def create_episode_tracker(ctx):
+    global state
+    title = "Current Episode"
+    description = "The currently selected episode. To select a new episode react to the episode poll in the pins!"
+    embed=discord.Embed(title=title, description=description)
+    
+    embed.add_field(name="Current episode:", value=state["current_episode"])
+    
+    msg = await ctx.send(embed=embed)
+    await msg.pin()
+    
+    if 'current_episode_tracker_id' in state.keys() and state['current_episode_tracker_id']:
+        old_msg = await ctx.fetch_message(state["current_episode_tracker_id"])
+        await old_msg.unpin()
+        await old_msg.delete()
+    
+    state['current_episode_tracker_id'] = msg.id
+    utils.save_state(state)
+    
+@bot.hybrid_command(name="createseasontracker", help='Creates the season tracker message', guild=discord.Object(id=guild_id))
+async def create_season_tracker(ctx):
+    global state
+    title = "Current Season"
+    description = "The currently selected season. To select a new season react to the season poll in the pins!"
+    embed=discord.Embed(title=title, description=description)
+    
+    embed.add_field(name="Current season:", value=state["current_season"])
+    
+    msg = await ctx.send(embed=embed)
+    await msg.pin()
+    
+    if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+        old_msg = await ctx.fetch_message(state["current_season_tracker_id"])
+        await old_msg.unpin()
+        await old_msg.delete()
+    
+    state['current_season_tracker_id'] = msg.id
+    utils.save_state(state)
+    
+@bot.hybrid_command(name="currentseasoncast", help='Prints the cast of the current season', guild=discord.Object(id=guild_id))
 async def get_current_season_cast(ctx):
     season_dict = survivor_scraper.load_seasons()
-    print(survivor_scraper.load_season_cast(season_dict, state["current_season"]).keys())
+    response = survivor_scraper.load_season_cast(season_dict, state["current_season"]).keys()
+    await ctx.send(list(response))
+    print(response)
+    
+@bot.hybrid_command("reloadcommands", help="Reloads the server commands", guild=discord.Object(id=guild_id))
+async def reload_commands(ctx):
+    utils.create_all_slash_commands()
+    await ctx.send("Reloaded commands")
     
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -129,25 +181,25 @@ async def on_raw_reaction_add(payload):
         return
     
     if payload.message_id == state["episode_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_episode"] = index
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
         print("Current episode set to " + str(index))
         
     elif payload.message_id == state["season_1_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_season"] = index
         print("Current season set to " + str(index))
         
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
     elif payload.message_id == state["season_2_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_season"] = index
         print("Current season set to " + str(index))
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
         
 @bot.event
 async def on_raw_reaction_remove(payload):
@@ -155,29 +207,43 @@ async def on_raw_reaction_remove(payload):
         return
     
     if payload.message_id == state["episode_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_episode"] = index
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
         print("Current episode set to " + str(index))
-        
+                
     elif payload.message_id == state["season_1_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_season"] = index
         print("Current season set to " + str(index))
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
+        
+        if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            channel = bot.get_channel(config["reporting_channel"])
+            msg = await channel.fetch_message(state["current_season_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current season:", value=state["current_season"])
         
     elif payload.message_id == state["season_2_id"]:
-        emojis = survivor_scraper.get_emojis()
+        emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_season"] = index
         print("Current season set to " + str(index))
-        survivor_scraper.save_state(state)
+        utils.save_state(state)
+        
+        if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            channel = bot.get_channel(config["reporting_channel"])
+            msg = await channel.fetch_message(state["current_season_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current season:", value=state["current_season"])
         
     
 @bot.event
 async def on_ready():
+    await bot.tree.sync(guild=guild)
+    utils.create_all_slash_commands()
     print(f'{bot.user} has connected to Discord!')
         
 bot.run(token)
