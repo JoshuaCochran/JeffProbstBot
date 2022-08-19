@@ -58,24 +58,27 @@ async def get_episode(ctx):
 async def create_season_poll(ctx):
     emojis = survivor_scraper.get_emojis()
     seasons = survivor_scraper.load_seasons()
-    title = "Season Selection"
+    title = "Season Selection (1-20)"
     description = "React with a reaction corresponding to the season you want to select!"
     embed=discord.Embed(title=title, description=description)
     for i in range(1, 21):
-        embed.add_field(name=str(i), value=emojis[i])
+        embed.add_field(name=str(i) + ": " + seasons[i-1], value=emojis[i])
     
     msg = await ctx.send(embed=embed)
+    await msg.pin()
     
     for i in range(1, 21):
         await msg.add_reaction(emojis[i])
-        
+    
+    title = "Season Selection (21-40)"
     embed=discord.Embed(title=title, description=description)
-    for i in range(21, 40):
-        embed.add_field(name=str(i), value=emojis[i])
+    for i in range(21, 41):
+        embed.add_field(name=str(i) + ": " + seasons[i-1], value=emojis[i])
         
     msg = await ctx.send(embed=embed)
+    await msg.pin()
         
-    for i in range(21, 40):
+    for i in range(21, 41):
         await msg.add_reaction(emojis[i])
     
     
