@@ -247,3 +247,21 @@ def get_emojis():
                     pass
                 emojis.append(hexa)
     return(emojis)
+
+def save_state(state):
+    with open('data/state.pkl', 'wb') as f:
+        pickle.dump(state, f)
+    
+def load_state():
+    try:
+        with open('data/state.pkl', 'rb') as f:
+            state = pickle.load(f)
+    except:
+        state = {
+            "current_episode": 1,
+            "current_season": 1,
+            "season_1_id": None,
+            "season_2_id": None,
+            "episode_id": None
+            }
+    return state
