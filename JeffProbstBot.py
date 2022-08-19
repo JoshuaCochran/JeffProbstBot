@@ -17,6 +17,10 @@ bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 token = os.getenv("DISCORD_TOKEN")
 bot.reportingChannel = 888867719032737835
 
+large_poll_emojis = [":one:", ":two:", ":three:", ":four:",
+                     ":five:", ":six:", ":seven:", ":eight:",
+                     ":nine:", ":keycap_ten:", ":1234:", ":hash:"]
+
 current_episode = 1
 current_season = 1
 
@@ -49,6 +53,23 @@ async def get_season(ctx):
 async def get_episode(ctx):
     channel = bot.get_channel(bot.reportingChannel)
     await channel.send("The current episode is " + str(current_episode))
+    
+@bot.command(name="SeasonPoll", help='Creates a poll to control the active season')
+async def create_season_poll(ctx):
+    emojis = survivor_scraper.get_emojis()
+    seasons = survivor_scraper.load_seasons()
+    title = "Season Selection"
+    description = "React with a reaction corresponding to the season you want to select!"
+    embed=discord.Embed(title=title, description=description)
+    for i in range(1, len(seasons)):
+        embed.add_field(name=str(i), value=emojis[i])
+    
+    msg = await ctx.send(embed=embed)
+    
+    for i in range(1, len(seasons)):
+        await msg.add_reaction(emojis[i])
+    
+    
     
 @bot.event
 async def on_ready():
