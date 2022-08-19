@@ -168,16 +168,27 @@ def fetch_contestant_info(link):
             elif item["data-source"] == "days":
                 contestant_info["days"] = item.div.get_text()
     return contestant_info
-            
+  
+def fetch_contestant_picture(link):
+    cara = requests.get(link)
+    soup = BeautifulSoup(cara.content, 'lxml')
+        
+
+    season_data = soup.findAll("figure", {"class": "pi-item pi-image"})
+    pic = season_data[0].a['href']
+    return pic
+          
 def fetch_all_contestant_info(season_cast):
     for cast_member in season_cast.keys():
         season_cast_link = convert_contestant_to_url(season_cast[cast_member])
         seasons = fetch_contestant_seasons(season_cast_link)
+        picture = fetch_contestant_picture(season_cast_link)
         season_cast[cast_member] = { 
             "full_name": season_cast[cast_member], 
             "wiki_link": season_cast_link,
             "seasons": seasons,
-            "number_of_seasons": len(seasons)
+            "number_of_seasons": len(seasons),
+            "photo": picture
             }
         season_cast[cast_member] = {**season_cast[cast_member], **fetch_contestant_info(season_cast_link)}
     return season_cast
@@ -230,3 +241,17 @@ def fetch_all_contestant_data(first_season, last_season):
             season_cast_dict = fetch_all_contestant_info(season_cast)
                 
             save_cast(season_dict, season_num, season_cast_dict)
+
+def update_constestant_info_with_photos():
+    season_dict = load_seasons()
+    
+    for season_num in range(1, 41):
+        try:
+            cast = load_season_cast(season_dict, season_num)
+            for cast_member in cast.values():
+                cast_member['photo'] = fetch_contestant_picture(cast_member['wiki_link'])
+            save_cast(season_dict, season_num, cast)
+        except Exception as inst:
+            print(inst)
+            pass
+    print('Done')

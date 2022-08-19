@@ -164,11 +164,34 @@ async def create_season_tracker(ctx):
     utils.save_state(state)
     
 @bot.hybrid_command(name="currentseasoncast", help='Prints the cast of the current season', guild=discord.Object(id=guild_id))
-async def get_current_season_cast(ctx):
+async def get_current_season_cast(ctx):    
+    global state
+    
+    emojis = utils.get_emojis()
     season_dict = survivor_scraper.load_seasons()
-    response = survivor_scraper.load_season_cast(season_dict, state["current_season"]).keys()
-    await ctx.send(list(response))
-    print(response)
+    cast = survivor_scraper.load_season_cast(season_dict, state["current_season"])
+    title = "Cast of Season " + str(state["current_season"])
+    description = "React with a reaction corresponding to the survivor to get more details!"
+    embed=discord.Embed(title=title, description=description)
+    j = 0
+    for cast_member in cast.keys():
+        embed.add_field(name=cast_member, value=emojis[j])
+        j += 1
+    
+    msg = await ctx.send(embed=embed)
+    await msg.pin()
+        
+    for i in range(len(cast.keys())):
+        await msg.add_reaction(emojis[i])
+        
+    if 'current_season_cast_id' in state.keys() and state['current_season_cast_id']:
+        old_msg = await ctx.fetch_message(state['current_season_cast_id'])
+        await old_msg.unpin()
+        await old_msg.delete()
+        
+    state['current_season_cast_id'] = msg.id
+    utils.save_state(state)
+    
     
 @bot.hybrid_command("reloadcommands", help="Reloads the server commands", guild=discord.Object(id=guild_id))
 async def reload_commands(ctx):
@@ -180,12 +203,19 @@ async def on_raw_reaction_add(payload):
     if payload.user_id == bot.user.id:
         return
     
+    channel = bot.get_channel(config["reporting_channel"])
     if payload.message_id == state["episode_id"]:
         emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_episode"] = index
         utils.save_state(state)
         print("Current episode set to " + str(index))
+        
+        if 'current_episode_tracker_id' in state.keys() and state['current_episode_tracker_id']:
+            msg = await channel.fetch_message(state["current_episode_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current episode:", value=state["current_episode"])
+            await msg.edit(embed=embed)
         
     elif payload.message_id == state["season_1_id"]:
         emojis = utils.get_emojis()
@@ -194,6 +224,12 @@ async def on_raw_reaction_add(payload):
         print("Current season set to " + str(index))
         
         utils.save_state(state)
+        
+        if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            msg = await channel.fetch_message(state["current_season_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            await msg.edit(embed=embed)
     elif payload.message_id == state["season_2_id"]:
         emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
@@ -201,17 +237,62 @@ async def on_raw_reaction_add(payload):
         print("Current season set to " + str(index))
         utils.save_state(state)
         
+        if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            msg = await channel.fetch_message(state["current_season_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            await msg.edit(embed=embed)
+    elif payload.message_id == state['current_season_cast_id']:
+        emojis = utils.get_emojis()
+        index = emojis.index(payload.emoji.name)
+        season_dict = survivor_scraper.load_seasons()
+        cast = survivor_scraper.load_season_cast(season_dict, state["current_season"])
+        cast_member_key = list(cast)[index]
+        cast_member = cast[cast_member_key]
+        
+        title = cast_member['full_name']
+        description = "Spoiler-free details about " + cast_member['full_name'] + '!'
+        embed=discord.Embed(title=title, description=description)
+        
+        if 'photo' in cast_member.keys() and cast_member['photo']:
+            cast_photo = cast_member['photo']
+            embed.set_image(url=cast_photo)
+        else:
+            try:
+                cast_photo = survivor_scraper.fetch_contestant_picture(cast_member['wiki_link'])
+                embed.set_image(url=cast_photo)
+            except Exception as inst:
+                print(inst)
+                
+        for key in cast_member.keys():
+            if key != 'seasons' and key != 'days' and key != 'full_name' and key != 'photo':
+                value = cast_member[key]
+                name = key.replace('_', ' ')
+                embed.add_field(name=name, value=value, inline=False)
+        msg = await channel.send(embed=embed)
+        
+        
+        
+        
+        
 @bot.event
 async def on_raw_reaction_remove(payload):
     if payload.user_id == bot.user.id:
         return
     
+    channel = bot.get_channel(config["reporting_channel"])
     if payload.message_id == state["episode_id"]:
         emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
         state["current_episode"] = index
         utils.save_state(state)
         print("Current episode set to " + str(index))
+        
+        if 'current_episode_tracker_id' in state.keys() and state['current_episode_tracker_id']:
+            msg = await channel.fetch_message(state["current_episode_tracker_id"])
+            embed = msg.embeds[0]
+            embed.set_field_at(0, name="Current episode:", value=state["current_episode"])
+            await msg.edit(embed=embed)
                 
     elif payload.message_id == state["season_1_id"]:
         emojis = utils.get_emojis()
@@ -221,10 +302,11 @@ async def on_raw_reaction_remove(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
-            channel = bot.get_channel(config["reporting_channel"])
+            print("season tracker updating")
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            await msg.edit(embed=embed)
         
     elif payload.message_id == state["season_2_id"]:
         emojis = utils.get_emojis()
@@ -234,16 +316,44 @@ async def on_raw_reaction_remove(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
-            channel = bot.get_channel(config["reporting_channel"])
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            await msg.edit(embed=embed)
+    elif payload.message_id == state['current_season_cast_id']:
+        emojis = utils.get_emojis()
+        index = emojis.index(payload.emoji.name)
+        season_dict = survivor_scraper.load_seasons()
+        cast = survivor_scraper.load_season_cast(season_dict, state["current_season"])
+        cast_member_key = list(cast)[index]
+        cast_member = cast[cast_member_key]
+        
+        title = cast_member['full_name']
+        description = "Spoiler-free details about " + cast_member['full_name'] + '!'
+        embed=discord.Embed(title=title, description=description)
+        
+        if 'photo' in cast_member.keys() and cast_member['photo']:
+            cast_photo = cast_member['photo']
+            embed.set_image(url=cast_photo)
+        else:
+            try:
+                cast_photo = survivor_scraper.fetch_contestant_picture(cast_member['wiki_link'])
+                embed.set_image(url=cast_photo)
+            except Exception as inst:
+                print(inst)
+                
+        for key in cast_member.keys():
+            if key != 'seasons' and key != 'days' and key != 'full_name' and key != 'photo':
+                value = cast_member[key]
+                name = key.replace('_', ' ')
+                embed.add_field(name=name, value=value, inline=False)
+        msg = await channel.send(embed=embed)
         
     
 @bot.event
 async def on_ready():
     await bot.tree.sync(guild=guild)
-    utils.create_all_slash_commands()
+    await utils.create_all_slash_commands()
     print(f'{bot.user} has connected to Discord!')
         
 bot.run(token)

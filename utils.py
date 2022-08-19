@@ -43,7 +43,9 @@ def load_state():
             'season_2_id': None,
             'episode_id': None,
             'current_episode_tracker_id': None,
-            'current_season_tracker_id': None
+            'current_season_tracker_id': None,
+            'current_season_cast_id': None,
+            'current_episode_cast_id': None
             }
     return state
 
@@ -59,34 +61,36 @@ def load_config():
         }
     return config
 
-def create_slash_command(name, command_type, description, options=None):
-    config = load_config()
-    token = os.getenv("DISCORD_TOKEN")
-    url = 'https://discord.com/api/v10/applications/' + str(config['app_id']) + '/guilds/' + str(config['guild_id']) + '/commands'
-    
-    json = {
-        'name': name,
-        'type': command_type,
-        'description': description,
-        'default_member_permisions': '0'
-    }
-    
-    if options:
-        json['options'] = options
-    
-    headers = {
-        'Authorization': 'Bot ' + str(token)
-    }
-    
-    requests.post(url, headers=headers, json=json)
-
-def create_all_slash_commands():
+async def create_all_slash_commands():
     try:
         f = open('config/slash_commands.json')
     
         command_list = json.load(f)
+        token = os.getenv("DISCORD_TOKEN")
     
+        command_json = []
         for command in command_list:
-            create_slash_command(command['name'], command['type'], command['description'], command['options'] if 'options' in command.keys() else None)
-    except:
+            _json = {
+                'name': command['name'],
+                'type': command['type'],
+                'description': command['description'],
+                'default_member_permissions': '0'
+            }
+            if 'options' in command.keys():
+                _json['options'] = command['options']
+            
+            command_json.append(_json)
+        
+        headers = {
+            'Authorization': 'Bot ' + str(token)
+        }
+        
+        config = load_config()
+        token = os.getenv('DISCORD_TOKEN')
+        url = 'https://discord.com/api/v10/applications/' + str(config['app_id']) + '/guilds/' + str(config['guild_id']) + '/commands'
+            
+        requests.put(url, headers=headers, json=command_json)
+            
+    except Exception as inst:
        print('Error while loading slash commands')
+       print(inst)
