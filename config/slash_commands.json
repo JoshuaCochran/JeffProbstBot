@@ -28,10 +28,5 @@
 		"name": "createepisodetracker",
 		"type": 1,
 		"description": "Creates the episode tracker message."
-	},
-	{
-		"name": "test",
-		"type": 1,
-		"description": "Creates the season tracker message."
 	}
 ]

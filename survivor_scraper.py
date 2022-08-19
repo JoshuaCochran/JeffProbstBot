@@ -2,7 +2,7 @@
 """
 Created on Thu Aug 18 08:34:14 2022
 
-@author: Joshua
+@author: Joshua Cochran
 """
 
 import pandas as pd

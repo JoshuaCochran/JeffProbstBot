@@ -2,7 +2,7 @@
 """
 Created on Thu Aug 18 17:25:05 2022
 
-@author: Joshua
+@author: Joshua Cochran
 """
 
 import discord

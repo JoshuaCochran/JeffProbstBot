@@ -2,7 +2,7 @@
 '''
 Created on Fri Aug 19 10:32:15 2022
 
-@author: Joshua
+@author: Joshua Cochran
 '''
 
 import requests
@@ -53,12 +53,14 @@ def load_config():
     try:
         with open('config/config.json', 'rb') as f:
             config = json.load(f)
-    except:
+    except Exception as inst:
         config = {
             'guild_id': None,
             'app_id': None,
             'reporting_channel': None
         }
+        print("Loading config/config.json failed. Setting config to defaults.")
+        print(inst)
     return config
 
 async def create_all_slash_commands():
