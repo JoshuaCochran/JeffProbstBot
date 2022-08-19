@@ -1,0 +1,19 @@
+,Episode,1,2,3,4,5,6,7,8,9,11,12,13,14,14,14,14
+0,Voted Out,Ryan,Janet,Daniel,JoAnna,Jeanne,Shawna,Roger,Dave,Deena,Alex,Christy,Heidi,Butch,Rob,Matthew,Jenna
+1,Vote,4-3,5-1,6-1,4-2,4-2,4-2,7-3,8-1,6-2,4-3,4-2,3-2,3-1,1-0,6-1,6-1
+2,Jenna,DNV,Janet,DNV,JoAnna,DNV,Shawna,Roger,Dave,Deena,Matthew,Christy,Rob,Butch,Rob,Jury Vote,Jury Vote
+3,Matthew,Roger,DNV,Daniel,DNV,DNV,Shawna,Roger,Dave,Deena,Alex,Christy,Heidi,Butch,None,Jury Vote,Jury Vote
+4,Rob,Ryan,DNV,Daniel,DNV,DNV,Shawna,Roger,Dave,Deena,Alex,Christy,Heidi,Butch,None,OOTG,Jenna
+5,Butch,Ryan,DNV,Daniel,DNV,Jeanne,DNV,Christy,Dave,Deena,Alex,Jenna,Heidi,Rob,OOTG,Matthew,OOTG
+6,Heidi,DNV,Janet,DNV,JoAnna,Jeanne,DNV,Roger,Dave,Deena,Matthew,Christy,Rob,OOTG,OOTG,OOTG,Jenna
+7,Christy,DNV,Jenna,DNV,JoAnna,Butch,DNV,Roger,Dave,Alex,Alex,Jenna,OOTG,OOTG,OOTG,OOTG,Jenna
+8,Alex,Ryan,DNV,Daniel,DNV,DNV,Matthew,Roger,Dave,Deena,Matthew,OOTG,OOTG,OOTG,OOTG,OOTG,Jenna
+9,Deena,DNV,Janet,DNV,JoAnna,DNV,Shawna,Roger,Dave,Alex,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,Jenna
+10,Dave,Daniel,DNV,Daniel,DNV,Jeanne,DNV,Christy,Matthew,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,Jenna
+11,Roger,Ryan,DNV,Daniel,DNV,Jeanne,DNV,Christy,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+12,Shawna,DNV,Janet,DNV,Christy,DNV,Matthew,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+13,Jeanne,DNV,Janet,DNV,Shawna,Butch,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+14,JoAnna,DNV,Christy,DNV,Shawna,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+15,Daniel,Roger,DNV,Roger,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+16,Janet,DNV,Jeanne,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
+17,Ryan,Roger,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG,OOTG
