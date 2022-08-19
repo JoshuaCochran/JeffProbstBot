@@ -61,12 +61,21 @@ async def create_season_poll(ctx):
     title = "Season Selection"
     description = "React with a reaction corresponding to the season you want to select!"
     embed=discord.Embed(title=title, description=description)
-    for i in range(1, len(seasons)):
+    for i in range(1, 21):
         embed.add_field(name=str(i), value=emojis[i])
     
     msg = await ctx.send(embed=embed)
     
-    for i in range(1, len(seasons)):
+    for i in range(1, 21):
+        await msg.add_reaction(emojis[i])
+        
+    embed=discord.Embed(title=title, description=description)
+    for i in range(21, 40):
+        embed.add_field(name=str(i), value=emojis[i])
+        
+    msg = await ctx.send(embed=embed)
+        
+    for i in range(21, 40):
         await msg.add_reaction(emojis[i])
     
     
