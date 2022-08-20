@@ -312,6 +312,7 @@ def build_amazon_link_dict():
                 "episode_urls": get_amazon_watchparty_links_for_season(survivor_season_link)
             }
         except:
+            print("Failed to get watch party urls for season " + str(key))
             survivor_urls[key] = {
                 "season_url": survivor_season_link,
                 "episode_urls": {}

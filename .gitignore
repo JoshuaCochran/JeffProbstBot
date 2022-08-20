@@ -3,3 +3,4 @@ __pycache__
 /config/config.pkl
 backup_data
 backup_data/*
+data/state.pkl
