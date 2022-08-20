@@ -20,7 +20,7 @@ guild_id = config['guild_id']
 guild = discord.Object(id=guild_id, type=discord.abc.Snowflake)
 
 @bot.command(name="savestate", help='Forces a state save')
-def command_save_state(ctx):
+async def command_save_state(ctx):
     state = utils.load_state()
     utils.save_state(state, ctx.guild.id)
     
