@@ -11,6 +11,7 @@ import requests
 from bs4 import BeautifulSoup
 import math
 import pickle
+import re
 
 def is_number(s):
     try:
@@ -255,3 +256,67 @@ def update_constestant_info_with_photos():
             print(inst)
             pass
     print('Done')
+    
+def save_amazon_watch_urls(amazon_link_dict):
+    with open('data/amazon_watch_urls.pkl', 'wb') as f:
+        pickle.dump(amazon_link_dict, f)
+        
+def load_amazon_watch_urls():
+    with open('data/amazon_watch_urls.pkl', 'rb') as f:
+        amazon_link_dict = pickle.load(f)
+    return amazon_link_dict
+
+def get_amazon_prime_video_season_links():
+    link = 'https://www.amazon.com/gp/video/detail/B00MYLG9US/ref=atv_dp_season_select_s1'
+    _class = "dv-node-dp-seasons _2yk-LG HaWow5 _3w9pRe"
+    
+    headers = ({'User-Agent':
+                'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',
+                'Accept-Language': 'en-US, en;q=0.5'})
+    
+    webpage = requests.get(link, headers=headers)
+    soup = BeautifulSoup(webpage.content, 'lxml')
+        
+    season_data = soup.findAll("div", {"class": _class})
+    seasons_ul = season_data[0].div.ul
+    base_amazon_url = 'https://www.amazon.com'
+    survivor_season_links = {}
+    for i, item in enumerate(seasons_ul.findAll('li')):
+        survivor_season_links[i] = base_amazon_url + item.a['href']
+    return survivor_season_links
+
+def get_amazon_watchparty_links_for_season(season_link):
+    base_amazon_url = 'https://www.amazon.com'
+    headers = ({'User-Agent':
+                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36',
+                    'Accept-Language': 'en-US, en;q=0.5'})
+
+    webpage = requests.get(season_link, headers=headers)
+    soup = BeautifulSoup(webpage.content, 'lxml')
+    
+    watchparty_links = {}
+    episode_items = soup.findAll('li', {"id": re.compile('av-ep-episodes-*')})
+    for i, item in enumerate(episode_items):
+        watchparty_input = item.findAll('input', {"name": "returnUrl"})[0]
+        watchparty_url = base_amazon_url + watchparty_input["value"]
+        watchparty_links[i] = watchparty_url
+    return watchparty_links
+
+def build_amazon_link_dict():
+    survivor_urls = {}
+    survivor_season_links = get_amazon_prime_video_season_links()
+    for key, survivor_season_link in survivor_season_links.items():
+        try:
+            survivor_urls[key] = {
+                "season_url": survivor_season_link,
+                "episode_urls": get_amazon_watchparty_links_for_season(survivor_season_link)
+            }
+        except:
+            survivor_urls[key] = {
+                "season_url": survivor_season_link,
+                "episode_urls": {}
+            }
+    save_amazon_watch_urls(survivor_urls)
+
+    
+    

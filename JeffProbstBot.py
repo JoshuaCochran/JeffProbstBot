@@ -56,6 +56,9 @@ async def get_episode(ctx):
     
 @bot.hybrid_command(name="seasonpoll", help='Creates a poll to control the active season', guild=discord.Object(id=guild_id))
 async def create_season_poll(ctx):
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     global state
     
     emojis = utils.get_emojis()
@@ -73,9 +76,12 @@ async def create_season_poll(ctx):
         await msg.add_reaction(emojis[i])
         
     if state["season_1_id"]:
-        old_msg = await ctx.fetch_message(state["season_1_id"])
-        await old_msg.unpin()
-        await old_msg.delete()
+        try:
+            old_msg = await ctx.fetch_message(state["season_1_id"])
+            await old_msg.unpin()
+            await old_msg.delete()
+        except:
+            pass
         
     state["season_1_id"] = msg.id
     
@@ -90,10 +96,13 @@ async def create_season_poll(ctx):
     for i in range(21, 41):
         await msg.add_reaction(emojis[i])
         
-    if state["season_1_id"]:
-        old_msg = await ctx.fetch_message(state["season_2_id"])
-        await old_msg.unpin()
-        await old_msg.delete()
+    if state["season_2_id"]:
+        try:
+            old_msg = await ctx.fetch_message(state["season_2_id"])
+            await old_msg.unpin()
+            await old_msg.delete()
+        except:
+            pass
         
     state["season_2_id"] = msg.id
         
@@ -101,6 +110,9 @@ async def create_season_poll(ctx):
         
 @bot.hybrid_command(name="episodepoll", help='Creates a poll to control the active episode', guild=discord.Object(id=guild_id))
 async def create_episode_poll(ctx):
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     global state
     emojis = utils.get_emojis()
     title = "Episode Selection (1-16)"
@@ -116,21 +128,38 @@ async def create_episode_poll(ctx):
         await msg.add_reaction(emojis[i])
 
     if state["episode_id"]:
-        old_msg = await ctx.fetch_message(state["episode_id"])
-        await old_msg.unpin()
-        await old_msg.delete()
+        try:
+            old_msg = await ctx.fetch_message(state["episode_id"])
+            await old_msg.unpin()
+            await old_msg.delete()
+        except:
+            pass
         
     state["episode_id"] = msg.id
     utils.save_state(state)
     
 @bot.hybrid_command(name="createepisodetracker", help='Creates the episode tracker message', guild=discord.Object(id=guild_id))
 async def create_episode_tracker(ctx):
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     global state
     title = "Current Episode"
     description = "The currently selected episode. To select a new episode react to the episode poll in the pins!"
     embed=discord.Embed(title=title, description=description)
     
     embed.add_field(name="Current episode:", value=state["current_episode"])
+    
+    amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+    episode_urls = amazon_watch_urls[state['current_season']-1]['episode_urls']
+    episode_url = ""
+    if episode_urls and state['current_episode'] in episode_urls.keys():
+        episode_url = episode_urls[state['current_episode']]
+    
+    if episode_url:
+        embed.add_field(name="Watch party link:", value=episode_url, inline=False)
+    else:
+        embed.add_field(name="Watch party link:", value="Watch party link not found", inline=False)
     
     msg = await ctx.send(embed=embed)
     await msg.pin()
@@ -143,8 +172,12 @@ async def create_episode_tracker(ctx):
     state['current_episode_tracker_id'] = msg.id
     utils.save_state(state)
     
+    
 @bot.hybrid_command(name="createseasontracker", help='Creates the season tracker message', guild=discord.Object(id=guild_id))
 async def create_season_tracker(ctx):
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     global state
     title = "Current Season"
     description = "The currently selected season. To select a new season react to the season poll in the pins!"
@@ -152,19 +185,29 @@ async def create_season_tracker(ctx):
     
     embed.add_field(name="Current season:", value=state["current_season"])
     
+    amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+    season_url = amazon_watch_urls[state['current_season']-1]['season_url']
+    embed.add_field(name="Amazon season link:", value=season_url, inline=False)
+    
     msg = await ctx.send(embed=embed)
     await msg.pin()
     
     if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
-        old_msg = await ctx.fetch_message(state["current_season_tracker_id"])
-        await old_msg.unpin()
-        await old_msg.delete()
+        try:
+            old_msg = await ctx.fetch_message(state["current_season_tracker_id"])
+            await old_msg.unpin()
+            await old_msg.delete()
+        except:
+            pass
     
     state['current_season_tracker_id'] = msg.id
     utils.save_state(state)
     
 @bot.hybrid_command(name="currentseasoncast", help='Prints the cast of the current season', guild=discord.Object(id=guild_id))
-async def get_current_season_cast(ctx):    
+async def get_current_season_cast(ctx):   
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     global state
     
     emojis = utils.get_emojis()
@@ -195,6 +238,9 @@ async def get_current_season_cast(ctx):
     
 @bot.hybrid_command("reloadcommands", help="Reloads the server commands", guild=discord.Object(id=guild_id))
 async def reload_commands(ctx):
+    if ctx.guild.id != config['guild_id']:
+        return
+    
     utils.create_all_slash_commands()
     await ctx.send("Reloaded commands")
     
@@ -202,8 +248,10 @@ async def reload_commands(ctx):
 async def on_raw_reaction_add(payload):
     if payload.user_id == bot.user.id:
         return
-    
-    channel = bot.get_channel(config["reporting_channel"])
+    if payload.guild_id != config['guild_id']:
+        return
+        
+    channel = bot.get_channel(config['reporting_channel'])
     if payload.message_id == state["episode_id"]:
         emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
@@ -212,8 +260,23 @@ async def on_raw_reaction_add(payload):
         print("Current episode set to " + str(index))
         
         if 'current_episode_tracker_id' in state.keys() and state['current_episode_tracker_id']:
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            episode_urls = amazon_watch_urls[state['current_season']-1]['episode_urls']
+            episode_url = ""
+            if episode_urls and state['current_episode'] in episode_urls.keys():
+                episode_url = episode_urls[state['current_episode']]
+            
+            
             msg = await channel.fetch_message(state["current_episode_tracker_id"])
             embed = msg.embeds[0]
+            
+            if episode_url:
+                embed_dict = embed.to_dict()
+                embed_dict['url'] = episode_url
+                embed = discord.Embed.from_dict(embed_dict)
+                embed.set_field_at(1, name="Watch party link:", value=episode_url)
+            else:
+                embed.set_field_at(1, name="Watch party link:", value="Watch party link not found")
             embed.set_field_at(0, name="Current episode:", value=state["current_episode"])
             await msg.edit(embed=embed)
         
@@ -226,9 +289,16 @@ async def on_raw_reaction_add(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            season_url = amazon_watch_urls[state['current_season']-1]['season_url']
+            
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
+            embed_dict = embed.to_dict()
+            embed_dict["url"] = season_url
+            embed = discord.Embed.from_dict(embed_dict)
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            embed.set_field_at(1, name="Amazon season link:", value=season_url)
             await msg.edit(embed=embed)
     elif payload.message_id == state["season_2_id"]:
         emojis = utils.get_emojis()
@@ -238,9 +308,16 @@ async def on_raw_reaction_add(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            season_url = amazon_watch_urls[state['current_season']-1]['season_url']
+            
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
+            embed_dict = embed.to_dict()
+            embed_dict["url"] = season_url
+            embed = discord.Embed.from_dict(embed_dict)
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            embed.set_field_at(1, name="Amazon season link:", value=season_url)
             await msg.edit(embed=embed)
     elif payload.message_id == state['current_season_cast_id']:
         emojis = utils.get_emojis()
@@ -279,8 +356,10 @@ async def on_raw_reaction_add(payload):
 async def on_raw_reaction_remove(payload):
     if payload.user_id == bot.user.id:
         return
+    if payload.guild_id != config['guild_id']:
+        return
     
-    channel = bot.get_channel(config["reporting_channel"])
+    channel = bot.get_channel(config['reporting_channel'])
     if payload.message_id == state["episode_id"]:
         emojis = utils.get_emojis()
         index = emojis.index(payload.emoji.name)
@@ -289,8 +368,24 @@ async def on_raw_reaction_remove(payload):
         print("Current episode set to " + str(index))
         
         if 'current_episode_tracker_id' in state.keys() and state['current_episode_tracker_id']:
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            episode_urls = amazon_watch_urls[state['current_season']-1]['episode_urls']
+            episode_url = ""
+            if episode_urls and state['current_episode'] in episode_urls.keys():
+                episode_url = episode_urls[state['current_episode']]
+            
+            
             msg = await channel.fetch_message(state["current_episode_tracker_id"])
             embed = msg.embeds[0]
+            
+            if episode_url:
+                embed_dict = embed.to_dict()
+                embed_dict['url'] = episode_url
+                embed = discord.Embed.from_dict(embed_dict)
+                embed.set_field_at(1, name="Watch party link:", value=episode_url)
+            else:
+                embed.set_field_at(1, name="Watch party link:", value="Watch party link not found")
+                
             embed.set_field_at(0, name="Current episode:", value=state["current_episode"])
             await msg.edit(embed=embed)
                 
@@ -302,10 +397,16 @@ async def on_raw_reaction_remove(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
-            print("season tracker updating")
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            season_url = amazon_watch_urls[state['current_season']-1]['season_url']
+            
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
+            embed_dict = embed.to_dict()
+            embed_dict["url"] = season_url
+            embed = discord.Embed.from_dict(embed_dict)
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            embed.set_field_at(1, name="Amazon season link:", value=season_url)
             await msg.edit(embed=embed)
         
     elif payload.message_id == state["season_2_id"]:
@@ -316,9 +417,16 @@ async def on_raw_reaction_remove(payload):
         utils.save_state(state)
         
         if 'current_season_tracker_id' in state.keys() and state['current_season_tracker_id']:
+            amazon_watch_urls = survivor_scraper.load_amazon_watch_urls()
+            season_url = amazon_watch_urls[state['current_season']-1]['season_url']
+            
             msg = await channel.fetch_message(state["current_season_tracker_id"])
             embed = msg.embeds[0]
+            embed_dict = embed.to_dict()
+            embed_dict["url"] = season_url
+            embed = discord.Embed.from_dict(embed_dict)
             embed.set_field_at(0, name="Current season:", value=state["current_season"])
+            embed.set_field_at(1, name="Amazon season link:", value=season_url)
             await msg.edit(embed=embed)
     elif payload.message_id == state['current_season_cast_id']:
         emojis = utils.get_emojis()

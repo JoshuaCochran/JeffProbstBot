@@ -27,28 +27,6 @@ def get_emojis():
                 emojis.append(hexa)
     return(emojis)
 
-def save_state(state):
-    with open('data/state.pkl', 'wb') as f:
-        pickle.dump(state, f)
-    
-def load_state():
-    try:
-        with open('data/state.pkl', 'rb') as f:
-            state = pickle.load(f)
-    except:
-        state = {
-            'current_episode': 1,
-            'current_season': 1,
-            'season_1_id': None,
-            'season_2_id': None,
-            'episode_id': None,
-            'current_episode_tracker_id': None,
-            'current_season_tracker_id': None,
-            'current_season_cast_id': None,
-            'current_episode_cast_id': None
-            }
-    return state
-
 def load_config():
     try:
         with open('config/config.json', 'rb') as f:
@@ -62,6 +40,30 @@ def load_config():
         print("Loading config/config.json failed. Setting config to defaults.")
         print(inst)
     return config
+
+def save_state(state):
+    with open('data/state.pkl', 'wb') as f:
+        pickle.dump(state, f)
+    
+def load_state():
+    try:
+        with open('data/state.pkl', 'rb') as f:
+            state = pickle.load(f)
+    except:
+        config = load_config()
+        state = {
+            'current_episode': 1,
+            'current_season': 1,
+            'season_1_id': None,
+            'season_2_id': None,
+            'episode_id': None,
+            'current_episode_tracker_id': None,
+            'current_season_tracker_id': None,
+            'current_season_cast_id': None,
+            'current_episode_cast_id': None
+            }
+    return state
+
 
 async def create_all_slash_commands():
     try:
