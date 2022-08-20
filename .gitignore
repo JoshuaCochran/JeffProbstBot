@@ -5,3 +5,5 @@ backup_data
 backup_data/*
 data/state.pkl
 amazon.py
+data/gifs/*
+data/gifs

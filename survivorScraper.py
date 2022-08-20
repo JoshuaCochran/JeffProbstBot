@@ -249,5 +249,8 @@ def update_constestant_info_with_photos():
             print(inst)
             pass
     print('Done')
+
+
     
+
 

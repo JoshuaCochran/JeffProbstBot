@@ -28,5 +28,10 @@
 		"name": "createepisodetracker",
 		"type": 1,
 		"description": "Creates the episode tracker message."
+	},
+	{
+		"name": "randomgif",
+		"type": 1,
+		"description": "Displays a random survivor gif."
 	}
 ]

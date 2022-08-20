@@ -8,9 +8,12 @@ Created on Thu Aug 18 17:25:05 2022
 import discord
 from discord.ext import commands
 import os
+import numpy as np
+
 import survivorScraper
 import utils
 import reactionProcessing
+import survivorGifs
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 token = os.getenv("DISCORD_TOKEN")
@@ -27,7 +30,7 @@ async def command_save_state(ctx):
 @bot.hybrid_command("reloadcommands", help="Reloads the server commands", guild=discord.Object(id=guild_id))
 async def reload_commands(ctx):    
     utils.create_all_slash_commands()
-    await ctx.send("Reloaded commands")
+    await ctx.send("The tribe has spoken. Reloaded commands.")
     
 @bot.hybrid_command(name="seasonpoll", help='Creates a poll to control the active season', guild=discord.Object(id=guild_id))
 async def create_season_poll(ctx):
@@ -195,6 +198,10 @@ async def get_current_season_cast(ctx):
     state['current_season_cast_id'] = msg.id
     utils.save_state(state, ctx.guild.id)
     
+@bot.hybrid_command(name="randomgif", help='Displays a random gif', guild=discord.Object(id=guild_id))
+async def get_random_gif(ctx):
+    await survivorGifs.download_random_gif(ctx.channel)
+    await ctx.send('The tribe has spoken.')
     
 @bot.event
 async def on_raw_reaction_add(payload):
