@@ -10,6 +10,13 @@ import pickle
 import os
 import json
 
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 def get_emojis():
     response = requests.get('https://unicode.org/Public/emoji/13.0/emoji-sequences.txt')
 
@@ -41,16 +48,15 @@ def load_config():
         print(inst)
     return config
 
-def save_state(state):
-    with open('data/state.pkl', 'wb') as f:
+def save_state(state, guild_id=""):
+    with open('state/' + str(guild_id) + '_state.pkl', 'wb') as f:
         pickle.dump(state, f)
     
-def load_state():
+def load_state(guild_id=""):
     try:
-        with open('data/state.pkl', 'rb') as f:
+        with open('state/' + str(guild_id) + '_state.pkl', 'rb') as f:
             state = pickle.load(f)
     except:
-        config = load_config()
         state = {
             'current_episode': 1,
             'current_season': 1,
@@ -98,3 +104,12 @@ async def create_all_slash_commands():
     except Exception as inst:
        print('Error while loading slash commands')
        print(inst)
+       
+def save_amazon_watch_urls(amazon_link_dict):
+    with open('data/amazon_watch_urls.pkl', 'wb') as f:
+        pickle.dump(amazon_link_dict, f)
+        
+def load_amazon_watch_urls():
+    with open('data/amazon_watch_urls.pkl', 'rb') as f:
+        amazon_link_dict = pickle.load(f)
+    return amazon_link_dict
