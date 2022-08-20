@@ -64,12 +64,13 @@ def get_random_gif():
     random_gif = np.random.choice(gifs, 1)[0]
     return base_path + random_gif
 
-async def download_random_gif(channel):
+async def download_random_gif(ctx):
     gifs = load_gifs()
     gif_url = np.random.choice(gifs, 1)[0]
     async with aiohttp.ClientSession() as session:
         async with session.get(gif_url) as resp:
             if resp.status != 200:
-                return await channel.send('Does Not Count. (Error getting gif)')
+                return await ctx.send('Does Not Count. (Error getting gif)')
             data = io.BytesIO(await resp.read())
-            await channel.send(file=discord.File(data, 'survivor_gif.gif'))
+            await ctx.send(file=discord.File(data, 'survivor_gif.gif'))
+            await ctx.send('The tribe has spoken.')

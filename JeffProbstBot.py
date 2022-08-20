@@ -200,8 +200,7 @@ async def get_current_season_cast(ctx):
     
 @bot.hybrid_command(name="randomgif", help='Displays a random gif', guild=discord.Object(id=guild_id))
 async def get_random_gif(ctx):
-    await survivorGifs.download_random_gif(ctx.channel)
-    await ctx.send('The tribe has spoken.')
+    await survivorGifs.download_random_gif(ctx)
     
 @bot.event
 async def on_raw_reaction_add(payload):
