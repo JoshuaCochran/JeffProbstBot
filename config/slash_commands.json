@@ -33,5 +33,10 @@
 		"name": "randomgif",
 		"type": 1,
 		"description": "Displays a random survivor gif."
+	},
+	{
+		"currentepisodecast",
+		"type": 1,
+		"description": "Prints the cast of the current episode."
 	}
 ]

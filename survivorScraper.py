@@ -58,9 +58,9 @@ def extract_voting_table_as_df(link):
     df = process_voting_table(df)
     return df
 
-def get_cast_voted_out_so_far(df, episode_num): 
-    return df.loc[0][[i for i in range(1,episode_num)]].values[0]
-    #return df.loc[df.index.get_level_values(0) == 0].values[0][1:episode_num]
+def get_cast_voted_out_so_far(df, episode_num):
+    #return df.loc[0][[i for i in range(1,episode_num)]].values[0]
+    return df.loc[df.index.get_level_values(0) == 0].values[0][1:episode_num]
     
 def get_cast_in_episode(df, episode_num):
     all_contestants = df.loc[0].values[0][1:]
@@ -250,7 +250,28 @@ def update_constestant_info_with_photos():
             pass
     print('Done')
 
-
+def load_episode_cast(season, episode):
+    try:
+        season_dict = load_seasons()
+        season_data = read_in_season_data(season_dict, season)
+        cast_in_episode = get_cast_in_episode(season_data, episode)
+        
+        season_cast = load_season_cast(season_dict, season)
     
+        episode_cast = {}
+        for cast_member, details in season_cast.items():
+            if cast_member in cast_in_episode:
+                episode_cast[cast_member] = details
+        
+        # randomize cast list order to avoid spoilers
+        episode_cast_list = list(episode_cast.items())
+        np.random.seed(100) # To allow us to track the index
+        np.random.shuffle(episode_cast_list)
+        episode_cast = dict(episode_cast_list)
+        
+        return episode_cast
+    except Exception as inst:
+        print(inst)
+        return {}
 
 

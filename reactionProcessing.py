@@ -23,6 +23,8 @@ async def process_reactions(bot, payload):
         
     elif payload.message_id == state['current_season_cast_id']:
        await update_season_cast(channel, payload)
+    elif 'current_episode_cast_id' in state.keys() and payload.message_id == state['current_episode_cast_id']:
+        await update_episode_cast(channel, payload)
 
 async def update_episode_tracker(channel, payload):
     state = utils.load_state(payload.guild_id)
@@ -109,4 +111,38 @@ async def update_season_cast(channel, payload):
             value = cast_member[key]
             name = key.replace('_', ' ')
             embed.add_field(name=name, value=value, inline=False)
-    msg = await channel.send(embed=embed)
+    await channel.send(embed=embed)
+    await channel.send('The tribe has spoken')
+    
+async def update_episode_cast(channel, payload):
+    state = utils.load_state(payload.guild_id)
+    emojis = utils.get_emojis()
+
+    episode_cast = survivorScraper.load_episode_cast(state['current_season'], state['current_episode'])
+    
+    index = emojis.index(payload.emoji.name)
+    
+    cast_member_key = list(episode_cast)[index]
+    cast_member = episode_cast[cast_member_key]
+    
+    title = cast_member['full_name']
+    description = "Spoiler-free details about " + cast_member['full_name'] + '!'
+    embed=discord.Embed(title=title, description=description)
+    
+    if 'photo' in cast_member.keys() and cast_member['photo']:
+        cast_photo = cast_member['photo']
+        embed.set_image(url=cast_photo)
+    else:
+        try:
+            cast_photo = survivorScraper.fetch_contestant_picture(cast_member['wiki_link'])
+            embed.set_image(url=cast_photo)
+        except Exception as inst:
+            print(inst)
+            
+    for key in cast_member.keys():
+        if key != 'seasons' and key != 'days' and key != 'full_name' and key != 'photo':
+            value = cast_member[key]
+            name = key.replace('_', ' ')
+            embed.add_field(name=name, value=value, inline=False)
+    await channel.send(embed=embed)
+    await channel.send('The tribe has spoken')

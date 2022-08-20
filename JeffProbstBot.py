@@ -198,6 +198,34 @@ async def get_current_season_cast(ctx):
     state['current_season_cast_id'] = msg.id
     utils.save_state(state, ctx.guild.id)
     
+@bot.hybrid_command(name="currentepisodecast", help='Prints the cast of the current episode', guild=discord.Object(id=guild_id))
+async def get_current_episode_cast(ctx):       
+    state = utils.load_state(ctx.guild.id)
+    
+    emojis = utils.get_emojis()
+    episode_cast = survivorScraper.load_episode_cast(state['current_season'], state['current_episode'])
+    title = 'Cast of Episode ' + str(state['current_episode']) + ' Season ' + str(state["current_season"])
+    description = "React with a reaction corresponding to the survivor to get more details!"
+    embed=discord.Embed(title=title, description=description)
+    j = 0
+    for cast_member in episode_cast.keys():
+        embed.add_field(name=cast_member, value=emojis[j])
+        j += 1
+    
+    msg = await ctx.send(embed=embed)
+    await msg.pin()
+        
+    for i in range(len(episode_cast.keys())):
+        await msg.add_reaction(emojis[i])
+        
+    if 'current_episode_cast_id' in state.keys() and state['current_episode_cast_id']:
+        old_msg = await ctx.fetch_message(state['current_episode_cast_id'])
+        await old_msg.unpin()
+        await old_msg.delete()
+        
+    state['current_episode_cast_id'] = msg.id
+    utils.save_state(state, ctx.guild.id)
+    
 @bot.hybrid_command(name="randomgif", help='Displays a random gif', guild=discord.Object(id=guild_id))
 async def get_random_gif(ctx):
     await survivorGifs.download_random_gif(ctx)
