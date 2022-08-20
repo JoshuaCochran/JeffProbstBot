@@ -18,6 +18,11 @@ token = os.getenv("DISCORD_TOKEN")
 config = utils.load_config()
 guild_id = config['guild_id']
 guild = discord.Object(id=guild_id, type=discord.abc.Snowflake)
+
+@bot.command(name="savestate", help='Forces a state save')
+def command_save_state(ctx):
+    state = utils.load_state()
+    utils.save_state(state, ctx.guild.id)
     
 @bot.hybrid_command("reloadcommands", help="Reloads the server commands", guild=discord.Object(id=guild_id))
 async def reload_commands(ctx):    
